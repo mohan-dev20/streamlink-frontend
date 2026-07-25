@@ -1,7 +1,6 @@
 "use client";
 
 import axios from "axios";
-import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 import AuthGuard from "@/components/AuthGuard";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -71,31 +70,38 @@ export default function UploadPage() {
         id: "upload",
       });
 
-    const [thumbnailUrl, videoUrl] = await Promise.all([
-  uploadToCloudinary(
-    thumbnail,
-    "streamlink/thumbnails"
-  ),
+   const formData = new FormData();
 
-  uploadToCloudinary(
-    video,
-    "streamlink/videos",
-    (progress) => setProgress(progress)
-  ),
-]);;
+formData.append("title", title);
+formData.append("description", description);
+formData.append("category", category);
+formData.append("duration", duration);
+formData.append("userId", user._id);
 
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/video/upload`,
-        {
-          title,
-          description,
-          category,
-          duration,
-          userId: user._id,
-          thumbnailUrl,
-          videoUrl,
-        },
+formData.append("thumbnail", thumbnail);
+formData.append("video", video);
+
+const res = await axios.post(
+  `${process.env.NEXT_PUBLIC_API_URL}/video/upload`,
+  formData,
+  {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+
+    onUploadProgress: (event) => {
+      if (!event.total) return;
+
+      const percent = Math.round(
+        (event.loaded * 100) / event.total
       );
+
+      setProgress(percent);
+    },
+  }
+);
+
+      
 
       if (res.data.success) {
         toast.success("Video Uploaded Successfully!", {
