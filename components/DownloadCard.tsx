@@ -11,7 +11,7 @@ interface DownloadCardProps {
 
 export default function DownloadCard({ video, onDelete }: DownloadCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-
+console.log("Video object:", video);
   return (
     <div className="bg-slate-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-blue-500/20 transition relative">
       {/* Thumbnail */}
@@ -46,7 +46,9 @@ export default function DownloadCard({ video, onDelete }: DownloadCardProps) {
           </Link>
 
           <button
-            onClick={() => onDelete(video.id)}
+            onClick={() => {
+              console.log("Delete Clicked:", video);
+              onDelete(video.id)}}
             className="w-full text-left px-4 py-3 text-red-400 hover:bg-slate-700"
           >
             🗑 Delete
