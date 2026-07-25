@@ -234,7 +234,9 @@ export default function UploadPage() {
                   : "bg-blue-600 hover:bg-blue-700 hover:scale-105"
               }`}
             >
-              {uploading && (
+              {uploading ? "Uploading..." : "🚀 Upload Video"}
+            </button><br></br>
+            {uploading && (
               <div className="mt-8">
                 <div className="flex justify-between text-sm mb-2">
                   <span>Uploading Video...</span>
@@ -249,8 +251,6 @@ export default function UploadPage() {
                 </div>
               </div>
             )}
-            </button>
-            
           </div>
           {/* Upload Summary */}
           <div className="grid md:grid-cols-3 gap-6 mt-12">
