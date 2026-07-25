@@ -227,14 +227,18 @@ export default function UploadPage() {
               {uploading ? "Uploading..." : "🚀 Upload Video"}
             </button>
             {uploading && (
-              <div className="w-full bg-slate-800 rounded-xl overflow-hidden mb-6">
-                <div
-                  className="bg-blue-600 h-3 transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
-                <p className="text-center mt-2 text-sm text-gray-300">
-                  Uploading... {progress}%
-                </p>
+              <div className="mt-8">
+                <div className="flex justify-between text-sm mb-2">
+                  <span>Uploading Video...</span>
+                  <span>{progress}%</span>
+                </div>
+
+                <div className="w-full bg-slate-800 rounded-full h-4 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-blue-500 via-cyan-500 to-green-500 transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
               </div>
             )}
           </div>
