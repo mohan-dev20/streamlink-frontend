@@ -8,28 +8,31 @@ interface ProfileVideoCardProps {
   video: any;
 }
 
-export default function ProfileVideoCard({
-  video,
-}: ProfileVideoCardProps) {
+export default function ProfileVideoCard({ video }: ProfileVideoCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const deleteVideo = async () => {
     const confirmDelete = confirm(
-      "Are you sure you want to delete this video?"
+      "Are you sure you want to delete this video?",
     );
 
     if (!confirmDelete) return;
 
     try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}${video._id}`,
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/video/${video._id}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
-      toast.success("Video deleted successfully.");
+      const data = await res.json();
 
+      if (!res.ok) {
+        throw new Error(data.message);
+      }
+
+      toast.success("Video deleted successfully.");
       window.location.reload();
     } catch (error) {
       console.log(error);
@@ -39,7 +42,6 @@ export default function ProfileVideoCard({
 
   return (
     <div className="relative bg-slate-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-blue-500/20 transition">
-
       {/* Thumbnail */}
       <img
         src={video.thumbnailUrl}
@@ -58,7 +60,6 @@ export default function ProfileVideoCard({
       {/* Menu */}
       {menuOpen && (
         <div className="absolute right-3 top-12 bg-slate-800 rounded-xl w-44 shadow-xl z-50">
-
           <Link
             href={`/videos/${video._id}`}
             className="block px-4 py-3 hover:bg-slate-700"
@@ -79,23 +80,18 @@ export default function ProfileVideoCard({
           >
             🗑 Delete
           </button>
-
         </div>
       )}
 
       {/* Details */}
       <div className="p-5">
-
         <h2 className="text-xl font-bold text-white line-clamp-2">
           {video.title}
         </h2>
 
-        <p className="text-gray-400 mt-2">
-          {video.category}
-        </p>
+        <p className="text-gray-400 mt-2">{video.category}</p>
 
         <div className="flex justify-between mt-5 text-sm text-gray-400">
-
           <div className="flex items-center gap-1">
             <Eye size={16} />
             {video.views}
@@ -110,11 +106,8 @@ export default function ProfileVideoCard({
             <Download size={16} />
             {video.downloads}
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }
