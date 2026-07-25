@@ -46,7 +46,7 @@ export default function DownloadCard({ video, onDelete }: DownloadCardProps) {
           </Link>
 
           <button
-            onClick={() => onDelete?.(video.id)}
+            onClick={() => onDelete(video.id)}
             className="w-full text-left px-4 py-3 text-red-400 hover:bg-slate-700"
           >
             🗑 Delete

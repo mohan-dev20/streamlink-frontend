@@ -33,16 +33,26 @@ const deleteDownload = async (id: string) => {
   try {
     const token = localStorage.getItem("token");
 
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/downloads/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await fetch(
+  `${process.env.NEXT_PUBLIC_API_URL}/downloads/${id}`,
+  {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
 
-    setDownloads((prev) =>
-      prev.filter((video) => video._id !== id)
-    );
+const data = await res.json();
+
+if (!res.ok) {
+  alert(data.message || "Failed to delete download");
+  return;
+}
+
+setDownloads((prev) =>
+  prev.filter((video) => video._id !== id)
+);
   } catch (err) {
     console.error(err);
   }
