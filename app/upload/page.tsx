@@ -1,5 +1,6 @@
 "use client";
 
+import axios from "axios";
 import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 import AuthGuard from "@/components/AuthGuard";
 import { useState } from "react";
@@ -23,6 +24,12 @@ export default function UploadPage() {
 
   const handleVideoChange = (file: File | null) => {
     if (!file) return;
+
+    // Maximum 500 MB
+    if (file.size > 500 * 1024 * 1024) {
+      toast.error("Maximum upload size is 500 MB");
+      return;
+    }
 
     setVideo(file);
 
@@ -55,47 +62,45 @@ export default function UploadPage() {
 
     try {
       setUploading(true);
-      setProgress(5);
+      setProgress(0);
 
       const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-      setProgress(20);
+      // Upload Thumbnail
+      toast.loading("Uploading Thumbnail...", {
+        id: "upload",
+      });
 
-      const thumbnailUrl = await uploadToCloudinary(
-        thumbnail,
-        "streamlink/thumbnails",
-      );
+    const [thumbnailUrl, videoUrl] = await Promise.all([
+  uploadToCloudinary(
+    thumbnail,
+    "streamlink/thumbnails"
+  ),
 
-      setProgress(50);
+  uploadToCloudinary(
+    video,
+    "streamlink/videos",
+    (progress) => setProgress(progress)
+  ),
+]);;
 
-      const videoUrl = await uploadToCloudinary(video, "streamlink/videos");
-
-      setProgress(80);
-
-      const res = await fetch(
+      const res = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/video/upload`,
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            title,
-            description,
-            category,
-            duration,
-            userId: user._id,
-            thumbnailUrl,
-            videoUrl,
-          }),
+          title,
+          description,
+          category,
+          duration,
+          userId: user._id,
+          thumbnailUrl,
+          videoUrl,
         },
       );
 
-      const data = await res.json();
-
-      if (data.success) {
-        setProgress(100);
-        toast.success("Video Uploaded Successfully!");
+      if (res.data.success) {
+        toast.success("Video Uploaded Successfully!", {
+          id: "upload",
+        });
 
         setTitle("");
         setDescription("");
@@ -103,15 +108,20 @@ export default function UploadPage() {
         setThumbnail(null);
         setVideo(null);
         setDuration("");
+        setProgress(100);
       } else {
-        toast.error(data.message);
+        toast.error(res.data.message, {
+          id: "upload",
+        });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("Upload Failed");
+
+      toast.error(err.response?.data?.message || "Upload Failed", {
+        id: "upload",
+      });
     } finally {
       setUploading(false);
-      setTimeout(() => setProgress(0), 1000);
     }
   };
   return (

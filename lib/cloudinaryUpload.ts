@@ -1,6 +1,9 @@
+import axios from "axios";
+
 export const uploadToCloudinary = async (
   file: File,
-  folder: string
+  folder: string,
+  onProgress?: (progress: number) => void
 ) => {
   const formData = new FormData();
 
@@ -11,19 +14,25 @@ export const uploadToCloudinary = async (
   );
   formData.append("folder", folder);
 
-  const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/auto/upload`,
-    {
-      method: "POST",
-      body: formData,
-    }
-  );
+  const response = await axios.post(
+  `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/auto/upload`,
+  formData,
+  {
+    timeout: 0,
 
-  const data = await res.json();
+    onUploadProgress: (event) => {
+      if (!event.total) return;
 
-  if (!res.ok) {
-    throw new Error(data.error?.message || "Cloudinary Upload Failed");
+      const percent = Math.round(
+        (event.loaded * 100) / event.total
+      );
+
+      if (onProgress) {
+        onProgress(percent);
+      }
+    },
   }
+);
 
-  return data.secure_url;
+  return response.data.secure_url;
 };
