@@ -15,7 +15,7 @@ export const uploadToCloudinary = async (
   formData.append("folder", folder);
 
   const response = await axios.post(
-  `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/auto/upload`,
+  `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload`,
   formData,
   {
     timeout: 0,
