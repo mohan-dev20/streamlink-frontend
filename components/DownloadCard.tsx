@@ -46,9 +46,8 @@ console.log("Video object:", video);
           </Link>
 
           <button
-            onClick={() => {
-              console.log("Delete Clicked:", video);
-              onDelete(video._id)}}
+            onClick={() => 
+              onDelete(video._id)}
             className="w-full text-left px-4 py-3 text-red-400 hover:bg-slate-700"
           >
             🗑 Delete
