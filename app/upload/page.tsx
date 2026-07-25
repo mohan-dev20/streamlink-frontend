@@ -1,5 +1,6 @@
 "use client";
 
+import { uploadToCloudinary } from "@/lib/cloudinaryUpload";
 import AuthGuard from "@/components/AuthGuard";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -14,7 +15,7 @@ export default function UploadPage() {
 
   const [duration, setDuration] = useState("");
   const [uploading, setUploading] = useState(false);
-
+  const [progress, setProgress] = useState(0);
 
   // ==========================
   // Get Video Duration
@@ -47,54 +48,72 @@ export default function UploadPage() {
   // ==========================
 
   const handleUpload = async () => {
-  if (!title || !description || !category || !thumbnail || !video) {
-    toast.error("Please fill every field.");
-    return;
-  }
+    if (!title || !description || !category || !thumbnail || !video) {
+      toast.error("Please fill every field.");
+      return;
+    }
 
-  try {
-    setUploading(true);
+    try {
+      setUploading(true);
+      setProgress(5);
 
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const formData = new FormData();
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-formData.append("title", title);
-formData.append("description", description);
-formData.append("category", category);
-formData.append("duration", duration);
-formData.append("userId", user._id);
+      setProgress(20);
 
-formData.append("thumbnail", thumbnail!);
-formData.append("video", video!);
+      const thumbnailUrl = await uploadToCloudinary(
+        thumbnail,
+        "streamlink/thumbnails",
+      );
 
-const res = await fetch(
-  `${process.env.NEXT_PUBLIC_API_URL}/video/upload`,
-  {
-    method: "POST",
-    body: formData,
-  }
-);
-const data = await res.json();
+      setProgress(50);
 
-if (data.success) {
-  toast.success("Video Uploaded Successfully!");
-} else {
-  toast.error(data.message);
-}
+      const videoUrl = await uploadToCloudinary(video, "streamlink/videos");
 
-setTitle("");
-setDescription("");
-setCategory("");
-setThumbnail(null);
-setVideo(null);
-setDuration("");
+      setProgress(80);
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/video/upload`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            category,
+            duration,
+            userId: user._id,
+            thumbnailUrl,
+            videoUrl,
+          }),
+        },
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setProgress(100);
+        toast.success("Video Uploaded Successfully!");
+
+        setTitle("");
+        setDescription("");
+        setCategory("");
+        setThumbnail(null);
+        setVideo(null);
+        setDuration("");
+      } else {
+        toast.error(data.message);
+      }
     } catch (err) {
-    console.log(err);
-    toast.error("Upload Failed");
-  } finally {
-    setUploading(false);
-  }
-};
+      console.error(err);
+      toast.error("Upload Failed");
+    } finally {
+      setUploading(false);
+      setTimeout(() => setProgress(0), 1000);
+    }
+  };
   return (
     <AuthGuard>
       <div className="min-h-screen bg-slate-950 text-white">
@@ -207,6 +226,17 @@ setDuration("");
             >
               {uploading ? "Uploading..." : "🚀 Upload Video"}
             </button>
+            {uploading && (
+              <div className="w-full bg-slate-800 rounded-xl overflow-hidden mb-6">
+                <div
+                  className="bg-blue-600 h-3 transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+                <p className="text-center mt-2 text-sm text-gray-300">
+                  Uploading... {progress}%
+                </p>
+              </div>
+            )}
           </div>
           {/* Upload Summary */}
           <div className="grid md:grid-cols-3 gap-6 mt-12">
